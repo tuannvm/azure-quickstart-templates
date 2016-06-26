@@ -328,6 +328,105 @@
         }
       }
     },
+             "extensionProfile": {
+              "extensions": [
+                {
+                  "name": "LinuxDiagnostic",
+                  "properties": {
+                    "publisher": "Microsoft.OSTCExtensions",
+                    "type": "LinuxDiagnostic",
+                    "typeHandlerVersion": "2.1",
+                    "autoUpgradeMinorVersion": false,
+                    "settings": {
+                      "xmlCfg": "[base64(concat(variables('wadcfgxstart'),variables('wadmetricsresourceid'),variables('wadcfgxend')))]",
+                      "storageAccount": "[variables('diagnosticsStorageAccountName')]"
+                    },
+                    "protectedSettings": {
+                      "storageAccountName": "[variables('diagnosticsStorageAccountName')]",
+                      "storageAccountKey": "[listkeys(variables('accountid'), variables('apiVersion')).key1]",
+                      "storageAccountEndPoint": "https://core.windows.net"
+                    }
+                  }
+                },
+                {
+                  "name": "Docker",
+                  "properties": {
+                    "publisher": "Microsoft.Azure.Extensions",
+                    "type": "DockerExtension",
+                    "typeHandlerVersion": "1.0",
+                    "autoUpgradeMinorVersion": true,
+                    "settings": {
+                      "docker": {
+                        "port": "2375"
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "RancherAgent",
+                  "properties": {
+                    "publisher": "Microsoft.OSTCExtensions",
+                    "type": "CustomScriptForLinux",
+                    "typeHandlerVersion": "1.4",
+                    "autoUpgradeMinorVersion": false,
+                    "settings": {
+                      "fileUris": [
+                        "https://raw.githubusercontent.com/kvaes/docker-rancher-scripts/master/agent-with-local-ip/rancher.sh"
+                      ],
+                      "commandToExecute": "[concat('./rancher.sh ', parameters('rancherApi'))]"
+                    }
+                  }
+                }
+              ]
+            }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Insights/autoscaleSettings",
+      "apiVersion": "[variables('insightsApiVersion')]",
+      "name": "autoscalewad",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachineScaleSets/', variables('namingInfix'))]"
+      ],
+      "properties": {
+        "name": "autoscalewad",
+        "targetResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', variables('namingInfix'))]",
+        "enabled": true,
+        "profiles": [
+          {
+            "name": "Profile1",
+            "capacity": {
+              "minimum": "1",
+              "maximum": "10",
+              "default": "1"
+            },
+            "rules": [
+              {
+                "metricTrigger": {
+                  "metricName": "\\Processor\\PercentProcessorTime",
+                  "metricNamespace": "",
+                  "metricResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', variables('namingInfix'))]",
+                  "timeGrain": "PT1M",
+                  "statistic": "Average",
+                  "timeWindow": "PT5M",
+                  "timeAggregation": "Average",
+                  "operator": "GreaterThan",
+                  "threshold": 50.0
+                },
+                "scaleAction": {
+                  "direction": "Increase",
+                  "type": "ChangeCount",
+                  "value": "1",
+                  "cooldown": "PT1M"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('rancherNodeName'), copyIndex(),'/', variables('extensionName'))]",

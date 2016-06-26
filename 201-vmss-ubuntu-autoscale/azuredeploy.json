@@ -261,28 +261,57 @@
               }
             ]
           },
-          "extensionProfile": {
-            "extensions": [
-              {
-                "name": "LinuxDiagnostic",
-                "properties": {
-                  "publisher": "Microsoft.OSTCExtensions",
-                  "type": "LinuxDiagnostic",
-                  "typeHandlerVersion": "2.3",
-                  "autoUpgradeMinorVersion": true,
-                  "settings": {
-                    "xmlCfg": "[base64(concat(variables('wadcfgxstart'),variables('wadmetricsresourceid'),variables('wadcfgxend')))]",
-                    "storageAccount": "[variables('diagnosticsStorageAccountName')]"
-                  },
-                  "protectedSettings": {
-                    "storageAccountName": "[variables('diagnosticsStorageAccountName')]",
-                    "storageAccountKey": "[listkeys(variables('accountid'), variables('storageApiVersion')).key1]",
-                    "storageAccountEndPoint": "https://core.windows.net"
+         "extensionProfile": {
+              "extensions": [
+                {
+                  "name": "LinuxDiagnostic",
+                  "properties": {
+                    "publisher": "Microsoft.OSTCExtensions",
+                    "type": "LinuxDiagnostic",
+                    "typeHandlerVersion": "2.1",
+                    "autoUpgradeMinorVersion": false,
+                    "settings": {
+                      "xmlCfg": "[base64(concat(variables('wadcfgxstart'),variables('wadmetricsresourceid'),variables('wadcfgxend')))]",
+                      "storageAccount": "[variables('diagnosticsStorageAccountName')]"
+                    },
+                    "protectedSettings": {
+                      "storageAccountName": "[variables('diagnosticsStorageAccountName')]",
+                      "storageAccountKey": "[listkeys(variables('accountid'), variables('apiVersion')).key1]",
+                      "storageAccountEndPoint": "https://core.windows.net"
+                    }
+                  }
+                },
+                {
+                  "name": "Docker",
+                  "properties": {
+                    "publisher": "Microsoft.Azure.Extensions",
+                    "type": "DockerExtension",
+                    "typeHandlerVersion": "1.0",
+                    "autoUpgradeMinorVersion": true,
+                    "settings": {
+                      "docker": {
+                        "port": "2375"
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "RancherAgent",
+                  "properties": {
+                    "publisher": "Microsoft.OSTCExtensions",
+                    "type": "CustomScriptForLinux",
+                    "typeHandlerVersion": "1.4",
+                    "autoUpgradeMinorVersion": false,
+                    "settings": {
+                      "fileUris": [
+                        "https://raw.githubusercontent.com/kvaes/docker-rancher-scripts/master/agent-with-local-ip/rancher.sh"
+                      ],
+                      "commandToExecute": "[concat('./rancher.sh ', parameters('rancherApi'))]"
+                    }
                   }
                 }
-              }
-            ]
-          }
+              ]
+            }
         }
       }
     },
